@@ -144,8 +144,8 @@ function App() {
 
   return <div className="layout">
     <aside>
-      <div className="brand"><span className="mark">AL</span> AZURE LOCAL</div>
-      <p className="eyebrow">PRIVATE KNOWLEDGE</p>
+      <div className="brand"><span className="mark">AL /</span> AZURE LOCAL</div>
+      <p className="eyebrow"><span className="section-number">01</span> The knowledge desk</p>
       <h1>Your documents.<br />Your infrastructure.</h1>
       <p>Ask questions about your PDFs. Retrieval, embeddings, and model inference run on the appliance.</p>
       <section className="status">
@@ -154,13 +154,14 @@ function App() {
       </section>
       <button className="secondary" onClick={refresh} disabled={busy}>Refresh index status</button>
       <div className="architecture">
+        <p className="eyebrow">ON THE APPLIANCE</p>
         <p>React + FastAPI</p><p>Local embeddings + Qdrant</p><p>Foundry Local + selectable Qwen models</p>
       </div>
       <p className="footnote">Demo access uses the Azure Arc tunnel. This is not a disconnected deployment.</p>
     </aside>
     <main>
       <header>
-        <div><h2>PDF Assistant</h2><p>{status?.scenario.name || "Grounded answers, with source passages"}</p></div>
+        <div className="header-title"><p className="eyebrow">DOCUMENT-GROUNDED REVIEW</p><h2>PDF Assistant</h2><p>{status?.scenario.name || "Grounded answers, with source passages"}</p></div>
         <div className="header-actions">
           {models.length > 1 && <label className="scenario-picker" htmlFor="model">Model
             <select id="model" value={model || ""} disabled={busy || !status}
@@ -180,7 +181,7 @@ function App() {
       </header>
       <div className="conversation" aria-live="polite">
         {!messages.length && <section className="welcome">
-          <div className="welcome-icon">?</div>
+          <p className="eyebrow"><span className="section-number">02</span> The investigation</p>
           <h2>What would you like to find?</h2>
           <p>{status?.scenario.description || "Ask a specific question about the indexed PDFs, then explore the source passages below each answer."}</p>
           <div className="examples">
@@ -192,7 +193,7 @@ function App() {
             : ""}Small local models can make mistakes. Check the sources before relying on an answer.</p>
         </section>}
         {messages.map((message, index) => <article key={index} className={`message ${message.role}`}>
-          <span className="role">{message.role === "user" ? "YOU" : "ASSISTANT"}{message.model && message.modelCalled !== false ? ` · ${message.model.label}` : ""}</span>
+          <span className="role">{message.role === "user" ? "YOUR QUESTION" : "DOCUMENT-GROUNDED ANSWER"}{message.model && message.modelCalled !== false ? ` · ${message.model.label}` : ""}</span>
           <div className="answer">{message.content}</div>
           {message.role === "assistant" && <p className="token-usage">
             {message.modelCalled === false

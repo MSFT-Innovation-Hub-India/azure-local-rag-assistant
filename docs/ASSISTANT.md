@@ -283,6 +283,41 @@ development. The npm lockfile retains versions and integrity hashes but omits
 registry-specific download URLs so it can also work in ACR's build environment.
 No frontend assets are downloaded from a CDN at runtime.
 
+### PDF assistant visual theme
+
+The UI uses a warm paper palette, square-edged controls, fine dividers, muted
+rust accents and system serif headings. The knowledge desk and investigation
+labels frame the existing PDF workflow; no monitoring or incident functionality
+is implied. Fonts are local system fonts, with no new assets or dependencies.
+Model/scenario selection, index refresh, chat reset, token usage and expandable
+source citations remain unchanged. Narrow screens retain index controls and
+the Arc access limitation rather than hiding them.
+
+After visual changes, run `npm.cmd run build` from `frontend`, then validate
+the FastAPI-served UI at desktop and mobile widths: check selections, example
+questions, submission, citations, errors and reset. A local build updates the
+preview assets only; publishing to Azure Local still requires the approved
+ACR build and guarded deployment procedure below. To recover from a theme
+regression, restore the previously approved application image using that same
+procedure; do not delete workloads or storage.
+
+**Deployed and verified (November 21, 2026):** the app-only ACR run `ct3u`
+built tag `paper-theme-20261121101525`, resolving to application digest
+`sha256:13f6dfc98d7e5fbe49a534d6ecf19762ac692b726c8604b3f23fdb9a829af837`.
+The credential-stdin preflight and apply both passed with
+`--preserve-placement` and both existing Qwen deployments. Application and
+document-helper rollouts completed; resource requests/limits, node selectors,
+embedding/Qdrant images, model selections and the original Bound PVCs were
+verified unchanged. The previous image references are retained in ignored
+`.local\acr-images-before-theme.json` for recovery through the same guarded
+deployment path, retaining both model arguments.
+
+The existing browser tunnel reconnected after pod replacement. Live API and
+browser checks confirmed the operations recovery answer, its source citation,
+model-reported tokens and conversation reset; all four scenarios and both
+models remain available. The deployed mobile layout was checked at 390 px
+without horizontal overflow and with index controls retained.
+
 ## Step 3 - Development integration check (not the on-appliance deployment)
 
 This optional check was initially used while the cluster lacked deployment capacity.
