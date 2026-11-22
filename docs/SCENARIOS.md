@@ -1,5 +1,46 @@
 # Adding domain scenarios to the Azure Local assistant
 
+Deploy [the shared application](DEPLOYMENT.md) first. This page covers content
+releases, not cluster/platform setup. For runtime code, see
+[the pipeline walkthrough](DEVELOPMENT.md).
+
+## First demo: operations or Contoso
+
+**Repeatable smoke test:** generate the fictional operations PDF, package and
+publish it using the existing application environment and Arc proxy:
+
+```powershell
+.\.venv\Scripts\python.exe -m tools.make_demo_pdf --scenario operations
+if ($LASTEXITCODE -ne 0) { throw "Synthetic PDF generation failed." }
+$release = .\.venv\Scripts\python.exe -m tools.scenario package `
+    .\scenarios\operations | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw "Operations packaging failed." }
+.\.venv\Scripts\python.exe -m tools.scenario deploy $release.package `
+    --context zines-22325-aks --timeout 900
+if ($LASTEXITCODE -ne 0) { throw "Operations publication failed." }
+```
+
+Select **Operations guide** and ask "What is the service recovery code?"
+The source document says **mango**; inspect the cited page rather than trusting
+the model alone. Publishing an existing ID replaces that scenario's complete
+document set on success: do not run this smoke-test release over a customized
+operations scenario without approval.
+
+**Field-service demo:** `contoso-field-service` covers industrial warranty
+policies, regional addenda and goodwill authority. Its
+[definition](../scenarios/contoso-field-service/scenario.json),
+[prompt](../scenarios/contoso-field-service/system-prompt.md) and
+[sample questions](../scenarios/contoso-field-service/sample-questions.txt) are
+included. The five policy PDFs are supplied separately; there is no Contoso
+PDF generator in this repo.
+
+If Contoso is already published, simply select it in the UI. To publish it on
+another approved deployment, obtain the authorized demonstration PDFs, place
+them in `scenarios\contoso-field-service\documents`, then repeat the package/deploy
+commands above with `.\scenarios\contoso-field-service` as the source folder.
+Do not commit private documents. Start with simple lookups, then compare regions
+and ask a follow-up; model answers remain advisory and must cite retrieved evidence.
+
 ## What stays shared
 
 Every scenario uses the same React/FastAPI application, local embedding service,
@@ -14,36 +55,18 @@ scenario releases use the package workflow below.
 The original operations demo remains available as `operations`. Its existing
 vector index and uploaded PDF are preserved when other scenarios are added.
 
-**Verified deployment:** operations, manufacturing and retail are published on
-the current Azure Local cluster. Identical approval-code questions returned
+**Recorded validation:** operations, manufacturing and retail were published on
+the Azure Local cluster. Identical approval-code questions returned
 `cobalt` and `amber` in the respective domains; operations still returned `mango`.
-All three indexes/catalog entries survived a Qdrant pod replacement. The 69
-regression tests and React production build pass.
+All three indexes/catalog entries survived a Qdrant pod replacement. Contoso
+was subsequently added, and both Qwen models were verified with warranty
+questions. These are recorded checks, not a live cluster health report;
+[run tests](DEVELOPMENT.md#testing) and verify your own publication.
 
-## Repository layout
+## Scenario layout
 
-```text
-assistant/
-  app.py                 HTTP API, sessions, CSRF, static React assets
-  service.py             Shared retrieval and grounded model conversation
-  clients.py             Shared model, embeddings and Qdrant clients
-  indexer.py             Shared PDF extraction and vector snapshot indexing
-  scenarios.py           Definition validation, package validation and catalog
-frontend/src/
-  main.jsx               Scenario selector, isolated chat, sources
-scenarios/
-  operations/
-  manufacturing/
-  retail/
-tools/
-  scenario.py            new / package / deploy
-  make_demo_pdf.py        Synthetic demonstration documents
-  build_acr.ps1          Core image builds in ACR, never local Docker
-  deploy_assistant.py    Guarded core Kubernetes deployment
-deploy/
-  stack.yaml             Shared services and storage
-  index-job.yaml         Reusable in-cluster indexing Job
-```
+The [code map](DEVELOPMENT.md#code-map) and
+[packaging guide](DEPLOYMENT.md#what-is-packaged) describe the shared implementation.
 
 Each scenario directory contains only:
 
@@ -182,7 +205,7 @@ from **Use case scenario**. Its description, example questions, index status,
 retrieval collection and domain prompt are selected together.
 
 Switching scenarios starts a new conversation in the UI. The backend keys history
-by browser session, scenario ID and published revision; old facts/questions never
+by browser session, scenario ID, published revision and model; old facts/questions never
 become another domain's conversation history. Updating the selected scenario's
 revision also starts a fresh backend conversation. Refresh clears stale displayed
 history, and responses from a new revision replace rather than append old turns.

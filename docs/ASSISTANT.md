@@ -1,5 +1,17 @@
 # PDF assistant: implementation and reproducible runbook
 
+**Detailed operational reference and deployment record.** For the short
+try-it flow, start with [the README](../README.md), then
+[prerequisites](PREREQUISITES.md) -> [deployment](DEPLOYMENT.md) ->
+[scenario publication](SCENARIOS.md). Use this page for exact registry/credential
+commands, platform-specific diagnostics, validation history and recovery.
+Architecture and code are explained separately in
+[the architecture guide](../ARCHITECTURE.md) and [the code guide](DEVELOPMENT.md).
+
+For workstation tools, sign-in, connected cluster access and initial
+platform prerequisites, start with [the prerequisites guide](PREREQUISITES.md).
+Existing lab resources should be verified and reused, not reinstalled.
+
 For domain definitions, prompts, content packages and UI scenario selection, see
 [the scenario authoring and publication guide](SCENARIOS.md).
 
@@ -293,6 +305,9 @@ development. The npm lockfile retains versions and integrity hashes but omits
 registry-specific download URLs so it can also work in ACR's build environment.
 No frontend assets are downloaded from a CDN at runtime.
 
+<details>
+<summary>Recorded UI theme and rollout validation</summary>
+
 ### PDF assistant visual theme
 
 The UI uses a warm paper palette, square-edged controls, fine dividers, muted
@@ -327,6 +342,8 @@ browser checks confirmed the operations recovery answer, its source citation,
 model-reported tokens and conversation reset; all four scenarios and both
 models remain available. The deployed mobile layout was checked at 390 px
 without horizontal overflow and with index controls retained.
+
+</details>
 
 ## Step 3 - Development integration check (not the on-appliance deployment)
 
