@@ -2,7 +2,7 @@
 
 Ask questions about service documents, retrieve the relevant PDF passages, and
 get a cited answer from a locally hosted Qwen model. This repository connects
-to a **preconfigured Arc-enabled Kubernetes cluster on an Azure Local appliance**
+to a **preconfigured Arc-enabled Kubernetes cluster on an Azure Local multi-rack installation**
 and deploys the PDF assistant alongside the existing model platform.
 
 ## What this showcases
@@ -38,6 +38,27 @@ operation or wholly on-premises transport. Browser access and document uploads
 use a cloud-mediated Arc tunnel; initial builds/model provisioning need external
 connectivity, and platform monitoring can have outbound flows. This demo
 illustrates workload/data placement, not a certification of regulatory sovereignty.
+
+### Azure Local platform and deployment types
+
+Azure Local extends Azure capabilities to customer-owned infrastructure for
+modern, legacy and AI workloads at on-premises, edge or sovereign locations.
+Azure Arc provides a unified control plane with familiar Azure portal, CLI and
+ARM tooling. Connected and disconnected deployment options are available;
+**this walkthrough uses a connected Azure Local multi-rack installation**.
+Its Kubernetes cluster and CPU allocation are only part of that installation,
+not a measure of the appliance's total capacity.
+
+Microsoft describes these [Azure Local deployment types](https://learn.microsoft.com/en-us/azure/azure-local/scalability-deployments?view=azloc-2610#about-azure-local-deployment-types):
+
+| Deployment type | In brief |
+|---|---|
+| Hyperconverged | 1-16 machines with hyperconverged storage; external SAN storage can also be attached |
+| Disaggregated | Independently scalable compute and SAN storage, up to 64 machines |
+| **Multi-rack (used here)** | Preintegrated compute, storage and networking racks, scaling to hundreds of machines |
+| Small form factor (preview) | Compact hardware for space- and power-constrained edge sites |
+| Disconnected | Local control plane and a subset of Azure capabilities without an Azure public-cloud connection |
+| Microsoft 365 Local | Deployments for locally hosted Microsoft 365 workloads |
 
 ### Why ONNX is used here
 
