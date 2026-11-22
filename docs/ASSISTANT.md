@@ -635,6 +635,40 @@ model-reported input/output/total token counts; missing usage is shown as
 unavailable, and no-evidence responses explicitly indicate no model call.
 Counts include the supplied prompt/history/excerpts and exclude embedding
 tokenization. They are neither billing data nor evidence of answer correctness.
+The same app-only upgrade path also publishes the SLM request/response panes:
+each successful model-backed turn returns its actual request body and untrimmed
+response content/finish reason, with existing usage shown in the response pane.
+The [scenario API guide](SCENARIOS.md#api-and-verification) specifies the exchange
+shape, exclusions and content-disclosure limits. No separate service, storage,
+resource-request change or sibling telemetry workload change is required.
+Verify a fresh chat and follow-up, expand both panes, scroll using mouse and
+keyboard, and check mobile wrapping. No-evidence turns must show no model call;
+failed turns must not show a fabricated exchange. API keys and transport headers
+must never appear. An older app image remains a safe recovery choice through
+the guarded procedure; clients show an explicit unavailable message if an
+exchange was not captured.
+
+**SLM exchange deployment verified (November 22, 2026):** app-only ACR run
+`ct3x` built `slm-exchange-20261122052041`, resolving to
+`sha256:b51e1ec8ef8d2a7d572b62e4b755b2f4f3ebed10bb30e5f6cc47c71cd76b156e`.
+The credential-stdin preflight and apply passed with `--preserve-placement`
+and both existing Qwen deployments. Application/document-helper rollouts
+completed; original Bound PVCs, placements, requests/limits, model selections
+and embedding/Qdrant images were verified unchanged. Recovery references are
+retained in ignored `.local\acr-images-before-exchange.json`; restore through
+the same guarded deployment procedure with both model arguments, not by
+deleting storage or changing other workloads.
+
+After the browser tunnel was restored, live browser checks verified request
+and response JSON, finish reason and usage for both the 0.5B and 14B models.
+The 0.5B follow-up request included its previous question/answer and retrieved
+PDF excerpts. Request panes were height-bounded and scrollable; mobile wrapping
+passed at 390 px. Switching models cleared the displayed exchanges after reset,
+and the browser was restored to the default 0.5B model. The preceding local
+validation passed 54 targeted tests, the production frontend build and synthetic
+browser checks for keyboard scrolling, escaped HTML text, missing usage,
+uncaptured exchanges, no-evidence turns, failures and reset.
+
 See the [scenario API guide](SCENARIOS.md#api-and-verification) for the response
 contract. Changing only a scenario's sample questions remains a content release.
 

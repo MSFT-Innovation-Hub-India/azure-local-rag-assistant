@@ -184,9 +184,42 @@ class AppTests(unittest.TestCase):
         self.assertEqual(prompt[1]["content"], "What is the recovery code?")
         self.assertEqual(prompt[2]["role"], "assistant")
 
+    def test_chat_exchange_matches_sent_body_and_preserves_raw_response(self):
+        captured = []
+        raw = "  The recovery code is mango. [1]\n"
+
+        def handler(request):
+            captured.append(json.loads(request.content))
+            return httpx.Response(200, json={
+                "choices": [{"message": {"content": raw}, "finish_reason": "stop"}],
+                "usage": {"prompt_tokens": 120, "completion_tokens": 10, "total_tokens": 130},
+                "internal_metadata": "not-for-the-browser",
+            })
+
+        with httpx.Client(transport=httpx.MockTransport(handler)) as http:
+            self.service.model = ModelRouter({
+                "default": ModelClient(http, Settings(model_url="https://private-endpoint"), "private-test-key"),
+            })
+            for question in ("What is the recovery code?", "Repeat that code."):
+                result = self.post("/api/chat", {"question": question})
+                self.assertEqual(result.status_code, 200)
+                payload = result.json()
+                self.assertEqual(payload["exchange"]["request"], captured[-1])
+                self.assertEqual(payload["exchange"]["response"], {
+                    "content": raw, "finish_reason": "stop",
+                })
+                self.assertEqual(payload["answer"], raw.strip())
+                self.assertNotIn("private-test-key", result.text)
+                self.assertNotIn("private-endpoint", result.text)
+                self.assertNotIn("not-for-the-browser", result.text)
+            self.assertIn("What is the recovery code?", captured[-1]["messages"][1]["content"])
+            self.assertIn("mango", captured[-1]["messages"][-1]["content"])
+
     def test_failed_turn_not_saved(self):
         self.model.complete.side_effect = DependencyError("Model unavailable")
-        self.assertEqual(self.post("/api/chat", {"question": "Failed question"}).status_code, 503)
+        failure = self.post("/api/chat", {"question": "Failed question"})
+        self.assertEqual(failure.status_code, 503)
+        self.assertNotIn("exchange", failure.json())
         self.model.complete.side_effect = None
         self.post("/api/chat", {"question": "Successful question"})
         self.assertNotIn("Failed question", str(self.model.complete.call_args))
@@ -215,6 +248,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result.json()["sources"], [])
         self.assertFalse(result.json()["model_called"])
         self.assertIsNone(result.json()["usage"])
+        self.assertIsNone(result.json()["exchange"])
         self.model.complete.assert_not_called()
 
     def test_missing_model_usage_is_not_reported_as_zero(self):
@@ -223,6 +257,7 @@ class AppTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertTrue(result.json()["model_called"])
         self.assertIsNone(result.json()["usage"])
+        self.assertIsNone(result.json()["exchange"])
 
     def test_blank_question_rejected(self):
         self.assertEqual(self.post("/api/chat", {"question": "   "}).status_code, 422)
@@ -392,6 +427,8 @@ class ClientTests(unittest.TestCase):
             result = model.complete([{"role": "user", "content": "Hello"}])
             self.assertEqual(result.content, "Answer")
             self.assertIsNone(result.usage)
+            self.assertEqual(result.exchange.request, captured[-1])
+            self.assertEqual(result.exchange.response, {"content": "Answer", "finish_reason": None})
         self.assertEqual(captured[0]["max_tokens"], 256)
         self.assertEqual(captured[0]["messages"][0]["content"], "Hello")
 
@@ -429,6 +466,16 @@ class ClientTests(unittest.TestCase):
         )) as client:
             with self.assertRaisesRegex(DependencyError, "Local model request failed"):
                 ModelClient(client, Settings(), "test-key").complete([])
+
+    def test_invalid_finish_reason_is_explicit(self):
+        for reason in (True, {"invalid": "reason"}):
+            with self.subTest(reason=reason), httpx.Client(transport=httpx.MockTransport(
+                lambda request: httpx.Response(200, json={
+                    "choices": [{"message": {"content": "Answer"}, "finish_reason": reason}],
+                }),
+            )) as client:
+                with self.assertRaisesRegex(DependencyError, "finish reason"):
+                    ModelClient(client, Settings(), "test-key").complete([])
 
 
 if __name__ == "__main__":

@@ -75,6 +75,7 @@ function App() {
         {
           role: "assistant", content: answer.answer, sources: answer.sources,
           usage: answer.usage, modelCalled: answer.model_called, model: answer.model,
+          exchange: answer.exchange,
         },
       ];
       const sameRevision = revision.current === answer.revision;
@@ -82,7 +83,7 @@ function App() {
       revision.current = answer.revision;
       setQuestion("");
     } catch (failure) {
-      setError(`${failure.message} This turn was not saved; you can retry. Token usage is unavailable for this failed request.`);
+      setError(`${failure.message} This turn was not saved; you can retry. Token usage and SLM request/response are unavailable for this failed request.`);
     } finally {
       setBusy(false);
     }
@@ -202,6 +203,22 @@ function App() {
                 ? `Tokens (model-reported): Input ${message.usage.prompt_tokens} | Output ${message.usage.completion_tokens} | Total ${message.usage.total_tokens}`
                 : "Token usage unavailable - model did not report counts."}
           </p>}
+          {message.role === "assistant" && message.modelCalled !== false && <details className="model-exchange">
+            <summary>SLM request and response</summary>
+            {message.exchange ? <>
+              <p className="footnote">Includes instructions, conversation history and retrieved PDF text. Headers, credentials and endpoint URLs are excluded. Response shows untrimmed content, finish reason and reported usage, not the full HTTP envelope.</p>
+              <details>
+                <summary>Request sent to the model</summary>
+                <pre className="exchange-json" tabIndex={0} aria-label="SLM request JSON">{JSON.stringify(message.exchange.request, null, 2)}</pre>
+              </details>
+              <details>
+                <summary>Response received from the model</summary>
+                <pre className="exchange-json" tabIndex={0} aria-label="SLM response JSON">{JSON.stringify({
+                  ...message.exchange.response, usage: message.usage ?? null,
+                }, null, 2)}</pre>
+              </details>
+            </> : <p className="footnote">SLM request/response was not captured for this turn.</p>}
+          </details>}
           {!!message.sources?.length && <div className="sources">
             <p className="source-label">Retrieved sources - verify the answer against these passages</p>
             {message.sources.map((source) => <details key={source.id}>

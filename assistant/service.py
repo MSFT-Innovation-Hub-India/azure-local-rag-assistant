@@ -118,6 +118,7 @@ class AssistantService:
                 })
                 passages.append(f"[{number}] {document}, page {page}\n{text}")
             usage = None
+            exchange = None
             if not sources:
                 answer = NO_EVIDENCE
             else:
@@ -133,6 +134,7 @@ class AssistantService:
                 completion = self.model.complete(messages, model_id)
                 answer = completion.content
                 usage = asdict(completion.usage) if completion.usage is not None else None
+                exchange = asdict(completion.exchange) if completion.exchange is not None else None
             session.messages = (history + [
                 {"role": "user", "content": question},
                 {"role": "assistant", "content": answer},
@@ -145,6 +147,7 @@ class AssistantService:
             return {
                 "answer": answer, "sources": sources, "scenario": scenario.id,
                 "revision": scenario.revision, "model_called": bool(sources), "usage": usage,
+                "exchange": exchange,
                 "model": selected.public() if selected else None,
             }
         finally:

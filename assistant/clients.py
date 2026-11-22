@@ -27,9 +27,16 @@ class TokenUsage:
 
 
 @dataclass(frozen=True)
+class ModelExchange:
+    request: dict[str, object]
+    response: dict[str, object]
+
+
+@dataclass(frozen=True)
 class CompletionResult:
     content: str
     usage: TokenUsage | None = None
+    exchange: ModelExchange | None = None
 
 
 def validate_vectors(vectors: object, count: int) -> list[list[float]]:
@@ -76,27 +83,32 @@ class ModelClient:
         self.api_key = api_key
 
     def complete(self, messages: list[dict[str, str]]) -> CompletionResult:
+        request = {
+            "model": self.settings.model_id,
+            "messages": messages,
+            "max_tokens": 256,
+            "temperature": 0,
+        }
         try:
             response = self.client.post(
                 self.settings.model_url,
                 headers={"api-key": self.api_key},
-                json={
-                    "model": self.settings.model_id,
-                    "messages": messages,
-                    "max_tokens": 256,
-                    "temperature": 0,
-                },
+                json=request,
             )
             response.raise_for_status()
             payload = response.json()
         except (httpx.HTTPError, ValueError) as exc:
             raise DependencyError("Local model request failed; check model health and TLS.") from exc
         try:
-            content = payload["choices"][0]["message"]["content"]
+            choice = payload["choices"][0]
+            content = choice["message"]["content"]
         except (KeyError, IndexError, TypeError) as exc:
             raise DependencyError("Local model returned no assistant message.") from exc
         if not isinstance(content, str) or not content.strip():
             raise DependencyError("Local model returned an empty assistant message.")
+        finish_reason = choice.get("finish_reason")
+        if finish_reason is not None and not isinstance(finish_reason, str):
+            raise DependencyError("Local model returned an invalid finish reason.")
         usage = payload.get("usage")
         counts = None
         if usage is not None:
@@ -112,7 +124,10 @@ class ModelClient:
             )
             if counts.total_tokens != counts.prompt_tokens + counts.completion_tokens:
                 raise DependencyError("Local model returned inconsistent token usage.")
-        return CompletionResult(content.strip(), counts)
+        return CompletionResult(
+            content.strip(), counts,
+            ModelExchange(request, {"content": content, "finish_reason": finish_reason}),
+        )
 
 
 class ModelRouter:

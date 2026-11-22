@@ -302,6 +302,39 @@ tokens were used. Counts do not include embedding tokenization, are not a billin
 record, and do not establish answer accuracy. Failed chat requests have no known
 usage and are labeled accordingly.
 
+Successful chat responses also include `exchange`:
+
+```json
+{
+  "request": {
+    "model": "<model asset ID>",
+    "messages": [{"role": "system", "content": "..."}, {"role": "user", "content": "..."}],
+    "max_tokens": 256,
+    "temperature": 0
+  },
+  "response": {"content": "<untrimmed model text>", "finish_reason": "stop"}
+}
+```
+
+`exchange.request` is the actual JSON body submitted to the selected model,
+including system/domain instructions, any bounded history and retrieved PDFs.
+`exchange.response` contains the original untrimmed content and reported finish
+reason (`null` if omitted), not the full HTTP response envelope. The response
+pane adds the existing `usage` field, which remains `null` if not reported.
+Headers, API keys, endpoint URLs and arbitrary model-response metadata are not
+included. No model call means `exchange: null`; failed requests do not return
+an exchange. Clients without captured exchanges show an explicit unavailable
+message rather than reconstructing a request.
+
+The React UI places expandable, pretty-printed request/response panes below
+token usage. Panes wrap long text, cap height at 300 px and support keyboard
+scrolling. Text is rendered as escaped React content, never interpreted as HTML.
+Exchanges are returned only with the current chat response and kept in browser
+memory, not added to server chat history, logs, document storage or Qdrant.
+They reveal prompt/history/PDF text to the requesting browser; share screenshots
+only when that content is appropriate to disclose. Reset, model/scenario changes
+and page reload clear the displayed exchanges with the conversation.
+
 ```powershell
 .\.venv\Scripts\python.exe -B -m unittest -q `
     tests.test_scenarios tests.test_assistant tests.test_deployment `
