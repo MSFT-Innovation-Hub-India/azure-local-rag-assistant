@@ -41,6 +41,103 @@ See the [assistant runbook](./docs/ASSISTANT.md#architecture) for executable
 deployment/validation and storage details. No cluster configuration is changed
 by this documentation update.
 
+## Chunking, embeddings and vector storage
+
+**MiniLM is not part of the Qdrant database, and it does not perform this
+application's chunking.** They run as separate components with different jobs:
+
+| Stage | Component in this repository | What it does |
+|---|---|---|
+| PDF text extraction | `pypdf` in [the indexer](./assistant/indexer.py) | Reads text from each PDF page; unusable/textless PDFs are rejected, not silently OCR'd |
+| Chunking | Python `extract_chunks` in the indexer | Normalizes whitespace and splits each page into up to 900-character chunks with 120-character overlap, retaining document/page metadata |
+| Embedding / vectorization | `all-MiniLM-L6-v2` through FastEmbed in [the embedding service](./assistant/embeddings.py) | Converts each chunk or question into a 384-dimensional numerical vector |
+| Vector storage and retrieval | Qdrant, accessed through [the backend clients](./assistant/clients.py) | Persists vectors with passage text/metadata and searches for similar vectors |
+| Answer generation | Selected Foundry Local Qwen model, called by [the assistant service](./assistant/service.py) | Uses retrieved passages and bounded conversation history to generate a grounded answer |
+
+```text
+Indexing:
+PDF -> pypdf text extraction -> Python chunking -> MiniLM embeddings
+    -> Qdrant vectors + passage text + source metadata
+
+Answering:
+Question -> MiniLM embedding -> Qdrant similarity search
+         -> retrieved passages + question/history -> Qwen -> answer + citations
+```
+
+An embedding is a numerical representation used for semantic similarity, not a
+generated answer. Qdrant finds relevant passages; Qwen writes the answer from
+those passages.
+
+### How PDF chunking works in this application
+
+Chunking is implemented in Python's `extract_chunks` function in
+[the indexer](./assistant/indexer.py), before MiniLM receives any text:
+
+1. **Read the PDF page by page.** `pypdf` extracts each page's text. This is text
+   extraction, not OCR; encrypted PDFs and PDFs with no usable text are rejected.
+2. **Normalize whitespace on each page.** Runs of spaces, tabs and newlines are
+   replaced with single spaces using `" ".join(text.split())`.
+3. **Take a window of up to 900 characters.** The first chunk starts at the
+   beginning of the normalized page text.
+4. **Advance by 780 characters.** The next chunk starts at
+   `900 - 120 = 780`, so consecutive full chunks share 120 characters. The
+   overlap gives neighboring chunks some common context around the boundary.
+5. **Stop when the page is covered.** The final chunk can be shorter than 900
+   characters. Blank pages contribute no chunks, and chunks never cross pages.
+6. **Keep source information with every chunk.** The indexer retains the
+   relative document filename, 1-based page number, zero-based chunk number
+   within the document, text and document content hash. Each chunk is then
+   embedded separately and stored with its metadata in Qdrant.
+
+For example, a normalized page containing 2,000 characters produces:
+
+| Chunk | Character positions (1-based, inclusive) | Length |
+|---|---|---|
+| First | 1-900 | 900 characters |
+| Second | 781-1680 | 900 characters |
+| Third | 1561-2000 | 440 characters |
+
+The first and second chunks share positions 781-900; the second and third share
+1561-1680. Document/page metadata lets the UI cite the original PDF page when a
+chunk is retrieved.
+
+This is **fixed-size character-window chunking**, not sentence-, paragraph- or
+semantic-aware splitting. A boundary can fall inside a word or sentence.
+The [configuration](./assistant/config.py) defines the 900-character size and
+120-character overlap. These are **not token counts**: MiniLM's tokenizer has
+its own input limit and may truncate long inputs. MiniLM vectorizes the already
+prepared chunks; neither MiniLM nor Qdrant performs this application's splitting.
+
+### Open-source components
+
+- **MiniLM embedding model:** this project uses
+  [`sentence-transformers/all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2),
+  an English sentence/paragraph embedding model published under Apache 2.0.
+  "MiniLM" identifies the model family; it is not a database or PDF parser.
+- **FastEmbed:** an [Apache-2.0 Python library maintained by Qdrant](https://github.com/qdrant/fastembed)
+  that runs the embedding model using ONNX Runtime. This project provisions a
+  pinned [ONNX model snapshot](https://huggingface.co/Qdrant/all-MiniLM-L6-v2-onnx)
+  into the embedding image and loads it offline at runtime.
+- **Qdrant:** an [Apache-2.0 open-source vector database](https://github.com/qdrant/qdrant).
+  A hosted cloud offering also exists, but this deployment uses a local
+  StatefulSet and persistent Azure Local storage, not Qdrant Cloud.
+
+FastEmbed and the ONNX model snapshot are maintained under the Qdrant
+organization, which can make the names confusing. That does **not** put MiniLM
+inside the database: the separate `embeddings` service creates vectors, and the
+`qdrant` service stores/searches them.
+
+### Are these platform defaults?
+
+These are **this project's selected defaults**, not required or universal Azure
+Local, Foundry Local or RAG defaults. MiniLM/FastEmbed provide lightweight local
+CPU embeddings; Qdrant provides persistent vector search and metadata filtering.
+The pinned embedding model produces 384-dimensional vectors. The model,
+dimensions and chunk settings are defined in
+[the application configuration](./assistant/config.py), not selected by Qdrant
+or by the user in the UI. The UI's model selector chooses the generative Qwen
+model, not the MiniLM embedding model.
+
 ## Detailed Python chat transport
 
 The original diagram is preserved as a separate

@@ -109,6 +109,11 @@ See the [component deployment overview](../ARCHITECTURE.md#deployment-overview)
 for a readable diagram of the application, namespaces, storage and model
 platform. The flow below summarizes the runtime path; Kubernetes tunnel
 internals are kept in the separate Python chat transport-detail diagram.
+The [embedding and vector-store explanation](../ARCHITECTURE.md#chunking-embeddings-and-vector-storage)
+separates Python chunking, MiniLM/FastEmbed vectorization, Qdrant storage/search
+and Qwen generation. It explains the fixed-size, page-by-page chunking algorithm
+with a worked example, plus licenses and project choices versus platform defaults.
+These are project choices, not mandatory Azure Local components.
 
 ```text
 Laptop browser

@@ -170,6 +170,13 @@ question/indexing flows and the separately preserved
 [Python chat transport detail](./architecture-detail.svg).
 The overview is available as [editable SVG](./architecture.svg) and [PNG](./architecture.png).
 
+For the distinction between PDF chunking, MiniLM/FastEmbed embeddings, Qdrant
+vector storage and Qwen generation, see
+[chunking, embeddings and vector storage](./ARCHITECTURE.md#chunking-embeddings-and-vector-storage).
+It explains each component's role, open-source licenses, project choices versus
+platform defaults, and the page-by-page 900-character chunking process with
+120-character overlap and a worked example.
+
 ## Azure Local lab reference
 
 This sample accompanies the **Azure Local Labs - AKS Arc with Foundry Local
