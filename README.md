@@ -161,12 +161,14 @@ selector is not an authorization boundary. See the
 
 ## Architecture
 
-![Qwen on Azure Local architecture](./architecture.svg)
+![PDF assistant and Qwen deployment overview](./architecture.svg)
 
-See the [architecture walkthrough](./ARCHITECTURE.md) for the numbered request
-path, important pods, model catalog and storage, and the distinction between the
-active port-forward tunnel and the installed Istio/Envoy gateway route.
-The diagram is available as [editable SVG](./architecture.svg) and [PNG](./architecture.png).
+The overview separates browser access, PDF/RAG components, persistent storage,
+local Qwen models and Azure provisioning. See the
+[architecture walkthrough](./ARCHITECTURE.md) for component responsibilities,
+question/indexing flows and the separately preserved
+[Python chat transport detail](./architecture-detail.svg).
+The overview is available as [editable SVG](./architecture.svg) and [PNG](./architecture.png).
 
 ## Azure Local lab reference
 

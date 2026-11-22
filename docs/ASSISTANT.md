@@ -105,6 +105,11 @@ resources to work around an authorization denial.
 
 ## Architecture
 
+See the [component deployment overview](../ARCHITECTURE.md#deployment-overview)
+for a readable diagram of the application, namespaces, storage and model
+platform. The flow below summarizes the runtime path; Kubernetes tunnel
+internals are kept in the separate Python chat transport-detail diagram.
+
 ```text
 Laptop browser
   -> localhost:8080 -> kubectl port-forward -> Azure Arc Cluster Connect

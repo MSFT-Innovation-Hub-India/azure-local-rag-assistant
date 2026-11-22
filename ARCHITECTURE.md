@@ -1,11 +1,53 @@
-# Architecture: Qwen inference on Azure Local
+# Architecture: PDF assistant and Qwen on Azure Local
 
-![Developer-to-model architecture](./architecture.svg)
+## Deployment overview
+
+![PDF assistant and Qwen deployment overview](./architecture.svg)
 
 [Open the scalable diagram](./architecture.svg) or [download the PNG](./architecture.png).
-It uses the reference's white
-background, outlined component groups, peach headings, numbered request steps,
-and color-coded connectors. It is an editable SVG, not a screenshot.
+The overview groups components by responsibility and deployment boundary, like
+the [sibling telemetry architecture](https://github.com/MSFT-Innovation-Hub-India/azure-local-telemetry-ai-agent/blob/main/docs/ARCHITECTURE.md#2-deployment-architecture).
+It is a logical deployment view, not a map of nodes or transport hops.
+
+| Component group | Responsibility |
+|---|---|
+| Developer computer and Azure Arc access | Browser UI on `localhost:8080`, or the separate standard-library Python chat on `localhost:5000`, through connected cluster access |
+| `assistant-demo` | FastAPI serves React and orchestrates PDF retrieval, scenario/model selection and conversational answers |
+| MiniLM embeddings and Qdrant | Embed questions/PDF text and retrieve passages from isolated scenario snapshots; these are not generative models |
+| Document helper and indexing Jobs | Upload and parse PDFs, build a new snapshot and publish only after indexing succeeds |
+| PDF/vector PVCs | Persist source documents and searchable vectors on Azure Local CSI storage |
+| `foundry-local-operator` | Existing Qwen 0.5B and 14B serving pods; operator, model store and trust support them |
+| Approved Azure provisioning services | ACR builds/supplies images; catalog/model assets support provisioning, not cloud inference |
+
+Read the overview in three passes:
+
+1. **Ask:** browser -> Arc access -> FastAPI -> embed the question / retrieve
+   passages -> selected Qwen model. The answer, sources, tokens and SLM exchange
+   return through FastAPI to the same browser.
+2. **Index:** upload PDFs -> document PVC -> indexing Job -> MiniLM -> new Qdrant
+   snapshot -> atomic active-index switch. Failed indexing keeps the prior index.
+3. **Provision:** approved ACR and model sources supply artifacts; runtime parsing,
+   embedding, retrieval and inference stay on Azure Local. Arc browser access
+   is cloud-mediated, so this is not an air-gapped or wholly on-premises path.
+
+Solid arrows show application requests; dashed arrows separate indexing and
+provisioning; lines without arrows show mounts. Secrets remain backend-only.
+The diagram omits Kubernetes API/kubelet hops, per-model sidecars, gateway
+alternatives and individual platform agents so the primary components remain
+readable. Other applications can share embeddings/Qdrant with separately scoped
+collections; they are outside this PDF assistant view.
+
+See the [assistant runbook](./docs/ASSISTANT.md#architecture) for executable
+deployment/validation and storage details. No cluster configuration is changed
+by this documentation update.
+
+## Detailed Python chat transport
+
+The original diagram is preserved as a separate
+[editable transport-detail SVG](./architecture-detail.svg) and
+[transport-detail PNG](./architecture-detail.png). It covers the standard-library
+chat demo's numbered tunnel hops and installed platform components, not the
+PDF assistant workflow.
 
 ## What actually happens in this demo
 
@@ -53,7 +95,7 @@ In-cluster caller
 
 For chat, the gateway request path is
 `/qwen2-5-0-5b-cpu/v1/chat/completions`.
-The diagram's purple route represents this alternative; **the current
+The transport-detail diagram's purple route represents this alternative; **the current
 `kubectl port-forward svc/qwen2-5-0-5b-cpu ...` demo bypasses the gateway**.
 The gateway Service was observed as an internal ClusterIP, not a publicly
 exposed endpoint.
@@ -123,7 +165,8 @@ Readiness counts are **containers per pod**, not model replicas.
   or exact physical topology was established.
 - AKS Arc nodes run on Azure Local infrastructure; this is not Azure-hosted AKS.
   The transcript showed one control-plane node and one worker. The inspected
-  application pods were on that worker; the diagram is logical, not a placement map.
+  application pods were on that worker. That original inventory is historical;
+  the PDF assistant and 14B model were added later. Neither diagram is a placement map.
 - **Inference compute stays on Azure Local, but this access path uses Azure Arc
   cloud connectivity for the tunnel.** Do not interpret local execution as proof
   that request/response transport never leaves the site. Artifact downloads and
@@ -132,7 +175,7 @@ Readiness counts are **containers per pod**, not model replicas.
   Python demo. The registry supplies assets, not chat responses.
 - Pod/container names, Qwen init/native sidecars, Service port mappings,
   HTTPRoute, and resolved model settings were inspected live while preparing
-  this diagram. Other setup context comes from the supplied transcript and lab.
+  the original transport-detail diagram. Other setup context comes from the supplied transcript and lab.
   Controller reconciliation and cache flows are logical relationships, not a
   packet capture or a complete storage/network implementation inventory.
 
