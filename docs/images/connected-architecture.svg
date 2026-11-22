@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1480" height="1120" viewBox="0 0 1480 1120" role="img" aria-labelledby="title description">
+  <title id="title">Connected sovereign AI on Azure Local</title>
+  <desc id="description">A user workstation accesses Microsoft Azure Arc through a local proxy. Cluster Connect establishes an outbound session from an on-premises Azure Local multi-rack installation; authenticated two-way traffic uses that session without an inbound Internet firewall port. The Kubernetes API server forwards browser traffic to the React and FastAPI assistant. Inside assistant-demo, Python chunks PDFs, MiniLM embeds text and Qdrant stores and searches vectors with persistent PDF and vector volumes. The backend calls internal Qwen CPU inference hosted by Foundry Local. Azure Container Registry and model assets are used for provisioning, not remote inference. This logical overview omits individual pods and detailed transport hops.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #20334b; }
+      .title { font-size: 32px; font-weight: 700; }
+      .heading { font-size: 23px; font-weight: 650; }
+      .label { font-size: 21px; font-weight: 600; }
+      .body { font-size: 18px; }
+      .note { font-size: 17px; fill: #52657b; }
+      .cloud { fill: #eef6ff; stroke: #3283c5; stroke-width: 2; }
+      .site { fill: #f5faf6; stroke: #4d8b6b; stroke-width: 2; }
+      .cluster { fill: #fff; stroke: #92b5a0; stroke-width: 1.5; }
+      .appzone { fill: #f4f0ff; stroke: #9677be; stroke-width: 1.5; }
+      .card { fill: #fff; stroke: #a5b4c5; stroke-width: 1.5; }
+      .model { fill: #fff5e9; stroke: #c79858; stroke-width: 1.5; }
+      .storage { fill: #eaf5ed; stroke: #78a48a; stroke-width: 1.5; }
+      .traffic { fill: none; stroke: #2874ac; stroke-width: 2.5; marker-start: url(#blue); marker-end: url(#blue); }
+      .request { fill: none; stroke: #2874ac; stroke-width: 2.5; marker-end: url(#blue); }
+      .outbound { fill: none; stroke: #4d8b6b; stroke-width: 2.5; stroke-dasharray: 4 5; marker-end: url(#green); }
+      .index { fill: none; stroke: #7956a8; stroke-width: 2.5; stroke-dasharray: 8 5; marker-end: url(#purple); }
+      .provision { fill: none; stroke: #ac7a36; stroke-width: 2.5; stroke-dasharray: 8 5; marker-end: url(#gold); }
+      .mount { fill: none; stroke: #78a48a; stroke-width: 2.5; }
+    </style>
+    <marker id="blue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0 0 L7 4 L0 8 Z" fill="#2874ac"/></marker>
+    <marker id="green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#4d8b6b"/></marker>
+    <marker id="purple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#7956a8"/></marker>
+    <marker id="gold" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L7 4 L0 8 Z" fill="#ac7a36"/></marker>
+  </defs>
+  <rect width="1480" height="1120" fill="#fff"/>
+  <text x="30" y="46" class="title">Connected sovereign AI on Azure Local</text>
+  <text x="30" y="76" class="note">Cloud-mediated access and provisioning / on-premises processing, storage and inference</text>
+
+  <rect x="30" y="110" width="460" height="190" rx="12" class="card"/>
+  <text x="50" y="143" class="heading">User workstation</text>
+  <text x="50" y="175" class="body">Browser: http://localhost:8080</text>
+  <text x="50" y="205" class="body">kubectl port-forward + Kubernetes commands</text>
+  <text x="50" y="235" class="body">Local proxy: az connectedk8s proxy</text>
+  <text x="50" y="278" class="note">Signed-in user; localhost is not a public ingress</text>
+
+  <rect x="550" y="110" width="900" height="190" rx="12" class="cloud"/>
+  <text x="570" y="143" class="heading">Microsoft Azure / connected services</text>
+  <rect x="570" y="160" width="480" height="115" rx="8" class="card"/>
+  <text x="590" y="193" class="label">Azure Arc Cluster Connect</text>
+  <text x="590" y="225" class="body">Entra identity, management and access relay</text>
+  <text x="590" y="255" class="note">No Azure-hosted PDF processing or inference</text>
+  <rect x="1090" y="160" width="340" height="115" rx="8" class="model"/>
+  <text x="1110" y="193" class="label">Image / model provisioning</text>
+  <text x="1110" y="225" class="body">Approved ACR builds + images</text>
+  <text x="1110" y="255" class="body">Foundry catalog / model assets</text>
+  <path d="M490 220 H570" class="traffic"/>
+  <text x="500" y="207" class="note">TLS</text>
+
+  <rect x="30" y="390" width="1420" height="635" rx="12" class="site"/>
+  <text x="50" y="425" class="heading">On-premises datacenter / Azure Local multi-rack installation</text>
+  <rect x="50" y="450" width="1380" height="550" rx="10" class="cluster"/>
+  <text x="70" y="478" class="label">Arc-enabled Kubernetes cluster / logical view of this CPU-only walkthrough</text>
+
+  <rect x="70" y="500" width="420" height="100" rx="8" class="card"/>
+  <text x="90" y="530" class="label">Arc agents + Kubernetes API server</text>
+  <text x="90" y="559" class="body">clusterconnect-agent / kube-aad-proxy</text>
+  <text x="90" y="586" class="note">Entra authentication + operation-level RBAC</text>
+  <path d="M70 530 H12 V335 H780 V275" class="traffic"/>
+  <text x="300" y="326" class="note">Two-way requests / responses on the established session</text>
+  <path d="M70 570 H24 V365 H1000 V275" class="outbound"/>
+  <text x="470" y="357" class="note">Cluster initiates outbound; no inbound Internet firewall port</text>
+
+  <rect x="1030" y="500" width="380" height="100" rx="8" class="model"/>
+  <text x="1050" y="530" class="label">Foundry Local platform</text>
+  <text x="1050" y="559" class="body">Operator + local model store</text>
+  <text x="1050" y="586" class="note">Gateway API / Istio; cert / trust managers</text>
+  <path d="M1260 275 V500" class="provision"/>
+  <path d="M1260 315 H1440 V988 H535 V975" class="provision"/>
+  <text x="1280" y="332" class="note">Builds / pulls /</text>
+  <text x="1280" y="358" class="note">model downloads</text>
+  <path d="M1220 600 V660" class="provision"/>
+  <text x="1235" y="638" class="note">Reconciles / hosts</text>
+
+  <rect x="70" y="660" width="930" height="315" rx="8" class="appzone"/>
+  <text x="90" y="688" class="label">assistant-demo / added PDF assistant and RAG services</text>
+  <rect x="95" y="710" width="300" height="80" rx="8" class="card"/>
+  <text x="115" y="740" class="label">React + FastAPI</text>
+  <text x="115" y="770" class="body">Questions, retrieval, cited answers</text>
+  <rect x="440" y="710" width="230" height="80" rx="8" class="card"/>
+  <text x="460" y="740" class="label">MiniLM / FastEmbed</text>
+  <text x="460" y="770" class="body">ONNX text-to-vector API</text>
+  <rect x="720" y="710" width="250" height="80" rx="8" class="card"/>
+  <text x="740" y="740" class="label">Qdrant</text>
+  <text x="740" y="770" class="body">Vector search + passages</text>
+  <path d="M280 600 V710" class="traffic"/>
+  <text x="310" y="630" class="note">Port-forward to pod :8000</text>
+  <path d="M395 745 H440" class="traffic"/>
+  <path d="M365 790 V808 H845 V790" class="traffic"/>
+  <text x="680" y="835" class="note">Search / evidence</text>
+
+  <rect x="95" y="850" width="300" height="85" rx="8" class="card"/>
+  <text x="115" y="880" class="label">Python indexing Job</text>
+  <text x="115" y="911" class="body">pypdf extraction + chunking</text>
+  <rect x="440" y="850" width="230" height="85" rx="8" class="storage"/>
+  <text x="460" y="880" class="label">PDF documents PVC</text>
+  <text x="460" y="911" class="body">Helper + indexer mount</text>
+  <rect x="720" y="850" width="250" height="85" rx="8" class="storage"/>
+  <text x="740" y="880" class="label">Qdrant data PVC</text>
+  <text x="740" y="911" class="body">Persistent vectors + catalog</text>
+  <path d="M440 890 H395" class="mount"/>
+  <path d="M845 790 V850" class="mount"/>
+  <path d="M245 850 V827 H555 V790" class="index"/>
+  <text x="100" y="961" class="note">Publication: PDF chunks -&gt; MiniLM vectors -&gt; new Qdrant snapshot; previous index survives failure</text>
+
+  <rect x="1030" y="660" width="380" height="315" rx="8" class="model"/>
+  <text x="1050" y="698" class="label">Qwen model services</text>
+  <text x="1050" y="731" class="body">foundry-local-operator namespace</text>
+  <text x="1050" y="779" class="heading">Qwen2.5 0.5B / 14B</text>
+  <text x="1050" y="816" class="body">CPU inference / ONNX GenAI</text>
+  <text x="1050" y="849" class="body">Internal HTTPS endpoints</text>
+  <text x="1050" y="894" class="note">Backend-only model credentials</text>
+  <text x="1050" y="924" class="note">No model weights in the web image</text>
+  <path d="M395 725 H410 V642 H1100 V660" class="traffic"/>
+  <text x="565" y="633" class="note">Retrieved evidence + question / selected model answer</text>
+
+  <path d="M40 1057 H90" class="traffic"/>
+  <text x="104" y="1063" class="note">Request / response</text>
+  <path d="M330 1057 H380" class="outbound"/>
+  <text x="394" y="1063" class="note">Outbound initiation</text>
+  <path d="M625 1057 H675" class="index"/>
+  <text x="689" y="1063" class="note">Content indexing</text>
+  <path d="M900 1057 H950" class="provision"/>
+  <text x="964" y="1063" class="note">Provisioning / lifecycle</text>
+  <path d="M1220 1057 H1270" class="mount"/>
+  <text x="1284" y="1063" class="note">PVC mount</text>
+  <text x="30" y="1100" class="note">Logical overview, not node placement or a packet trace. Browser traffic crosses Azure; AI processing and persistent data stay on Azure Local.</text>
+</svg>

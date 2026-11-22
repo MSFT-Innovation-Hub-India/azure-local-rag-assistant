@@ -129,7 +129,21 @@ the local tunnels, not the workloads.
 
 ## Understand the solution
 
-![PDF assistant and Qwen deployment overview](./architecture.svg)
+![Client, Azure cloud and on-premises Azure Local with product icons](./docs/images/platform-architecture.svg)
+
+<details>
+<summary>Expand the application, indexing and inference architecture</summary>
+
+![Connected sovereign AI: Azure Arc access and the PDF assistant inside Azure Local](./docs/images/connected-architecture.svg)
+
+</details>
+
+**Read the boundaries:** Azure supplies connected access and provisioning;
+the Kubernetes cluster, Foundry-hosted Qwen inference, PDF processing and
+persistent storage run on Azure Local. Arc uses an outbound-established,
+two-way session, not an inbound Internet endpoint on the appliance.
+See the [detailed component diagram](./ARCHITECTURE.md#deployment-overview)
+and [browser access flow](./docs/CONNECTIVITY.md#browser-to-application-architecture).
 
 | Topic | Focused documentation |
 |---|---|

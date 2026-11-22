@@ -2,6 +2,18 @@
 
 ## Deployment overview
 
+[Product-icon platform view](./docs/images/platform-architecture.svg) separates
+the client, Azure cloud and on-premises installation. Microsoft product icons
+come from the [Azure architecture icon set](https://learn.microsoft.com/azure/architecture/icons/)
+under its diagram/documentation terms; Kubernetes and Istio icons come from
+[CNCF artwork](https://github.com/cncf/artwork). Generic client, datacenter and
+certificate illustrations are not product logos.
+
+[Connected platform and application overview](./docs/images/connected-architecture.svg)
+shows the workstation, Azure services and Azure Local multi-rack boundary
+together. It separates the outbound-established Arc session from local AI
+processing and provisioning; the component diagram below expands the workloads.
+
 ![PDF assistant and Qwen deployment overview](./architecture.svg)
 
 [Scalable SVG](./architecture.svg) / [PNG](./architecture.png).
