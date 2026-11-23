@@ -5,6 +5,12 @@ get a cited answer from a locally hosted Qwen model. This repository connects
 to a **preconfigured Arc-enabled Kubernetes cluster on an Azure Local multi-rack installation**
 and deploys the PDF assistant alongside the existing model platform.
 
+## See the solution in action
+
+[![Watch the Azure Local AI assistant demo on YouTube](https://img.youtube.com/vi/jvt2gwajiZo/hqdefault.jpg)](https://youtu.be/jvt2gwajiZo)
+
+Click the thumbnail to watch the demo, or read the [LinkedIn post](https://lnkd.in/p/gMqahf4H).
+
 ## What this showcases
 
 1. **AI processing and persistent data on the appliance.** A Python indexer
